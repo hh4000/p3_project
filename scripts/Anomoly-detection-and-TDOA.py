@@ -17,11 +17,14 @@ duration = 2
 sampling_rate = 48000
 d = 0.08 #meter distance between microphones
 c = 343 #Speed of sound
-#Choosing a file path for the noise template
-file_path_sensitive = r'C:\Users\silas\Desktop\3 microphones quiet sensitive (2 sek)' 
-file_path_insensitive = r'C:\Users\silas\Desktop\3 microphones quiet insensitive (2 sek)'
-file_path_very_sensitive = r'C:\Users\silas\Desktop\3 microphones quiet very sensitive (2 sek)'
-noise_template = np.loadtxt(file_path_sensitive)
+
+
+### FIX PATHING ###
+##Choosing a file path for the noise template
+#file_path_sensitive = r'C:\Users\silas\Desktop\3 microphones quiet sensitive (2 sek)' 
+#file_path_insensitive = r'C:\Users\silas\Desktop\3 microphones quiet insensitive (2 sek)'
+#file_path_very_sensitive = r'C:\Users\silas\Desktop\3 microphones quiet very sensitive (2 sek)'
+#noise_template = np.loadtxt(file_path_sensitive)
 
 
 #Recording from all devices
