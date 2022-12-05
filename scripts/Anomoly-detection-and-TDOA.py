@@ -57,7 +57,7 @@ def anomoly_detection(signal,sr):
     #We then do a for-loop that tests the newly recorded sound against the noise template
     for x in range(int(n_samples/2)):
         #If the sound has a frequency higher that the noise template it will be considered an anomoly
-        if noise_template[x] < (amplitude[x]*100000):
+        if noise_template[x] < (amplitude[x]*100000):#Error because paths (see line 22-27)
             print("anomoly at freq: " + str(freq[x]) + " and amplitude: " + str(amplitude[x]*100000))
             anomoly = True
             return True
@@ -85,7 +85,7 @@ class Triangular_mic_array:
         self.d = d
     
     def __find_angle_difference(self,ref_angle_rad, time_difference_seconds, time_id):
-        """finds the angle closest to the reference angle
+        """finds the angle difference compared to the reference angle given a certain time difference
             ### PRIVATE FUNCTION ###
         Args:
             ref_angle (float): angle expected to be close to the correct angle
@@ -93,22 +93,26 @@ class Triangular_mic_array:
             time_id (String): id of the time difference
 
         Returns:
-            float: angle given the time difference (radians)
+            float: angle difference compared to reference angle given the time difference (radians)
         """
+        # Check which time difference is worked on (changes factor)
         if time_id == 't12': factor = -1
         elif time_id=='t13': factor =  1
         else:
-            print('Incorrect input for time_id; Expected \'t12\' or \'t13\', recieved ', time_id)
-            return 'Error'
-        
+            #If not known id output error
+            print()
+            raise ValueError('Incorrect input for time_id; Expected \'t12\' or \'t13\', recieved ', time_id)
+        # Two possible angles given the time differenc 
         angle_1 = factor*(np.pi/6-np.arccos(c/self.d*time_difference_seconds))
         angle_2 = factor*(np.arccos(c/self.d*time_difference_seconds)-np.pi*11/6)
         if abs(angle_2)> np.pi:
+            # If angle 2 is out of bounds, use other method
             angle_2 = factor*(np.arccos(c/self.d*time_difference_seconds)+np.pi/6)
          
         ## Print statement for testing
         #print('\nTime difference: ',time_id,'\nAngle_1: ', angle_1,'\nAngle_2: ',angle_2)
         
+        #Checks the angle distances to the reference angle
         angle_difference_1 = abs(angle_1-ref_angle_rad)
         if angle_difference_1 > np.pi:
             angle_difference_1 = 2*np.pi-angle_difference_1
@@ -116,15 +120,14 @@ class Triangular_mic_array:
         angle_difference_2 = abs(angle_2-ref_angle_rad)
         if angle_difference_2 > np.pi:
             angle_difference_2 = 2*np.pi-angle_difference_2
-        
+        #Gives angle closest to reference angle
         if angle_difference_1 < angle_difference_2:
-            return_angle_rad = angle_1
+            closest_angle_rad = angle_1
         else:
-            return_angle_rad = angle_2
-        #if return_angle_rad < 0:
-        #    return return_angle_rad + 2*np.pi - ref_angle_rad
-        #else:
-        angle_difference = return_angle_rad - ref_angle_rad
+            closest_angle_rad = angle_2
+            
+        #Calculates difference between angle and reference considering direction.
+        angle_difference = closest_angle_rad - ref_angle_rad
         if angle_difference < -np.pi:
             return angle_difference + 2*np.pi
         elif angle_difference > np.pi:
@@ -133,18 +136,31 @@ class Triangular_mic_array:
             return angle_difference
         
     def find_sound_angle(self,t12,t13,t23):
+        """Find the directioned angle of the sound, given the time differences
+
+        Args:
+            t12 (float): TDOA of microphone 1 and 2
+            t13 (float): TDOA of microphone 1 and 3
+            t23 (float): TDOA of microphone 2 and 3
+
+        Returns:
+            float: angle of the sound in radians
+        """
+        #Calculate the 2 possible angles of the sound from the TDOA of mic 2 and 3
         a1 = np.arcsin(c*t23/self.d)
         if a1>=0:
             a2 =  np.pi - a1
         else:
             a2 = -np.pi - a1
+        # puts angles into array
         a = [a1,a2]
+        
+        # Uses the TDOA of the other two sets of microphones to dedice the angle (a1,a2) that is most likely
         t12_expected = [self.d/c*np.cos(angle + np.pi/6) for angle in a]
         t13_expected = [self.d/c*np.cos(angle - np.pi/6) for angle in a]
-        
         differences_1 = [abs(t12-time_difference) for time_difference in t12_expected]
         differences_2 = [abs(t13-time_difference) for time_difference in t13_expected]
-        
+        # If statements to decide correct angle
         if differences_1[0] < differences_1[1]:
             index_1 = 0
         else:
@@ -153,22 +169,24 @@ class Triangular_mic_array:
             index_2 = 0
         else:
             index_2 = 1
-            
-        if index_1 != index_2:
-            print('\nTime difference error! Time differences impossible.\n')
-            return 'error'
-        angle_1 = a[index_1]
         
+        # Error the case that the TDOA's are deemed impossible
+        if index_1 != index_2:
+            raise ValueError('Time differences are impossible')
+        # Define angle_1 as the correct angle
+        angle_1 = a[index_1]
+        # calculates the angles given the other sets of TDOA and gives the difference
         angle_difference_2 = self.__find_angle_difference(angle_1,t12,'t12')
         angle_difference_3 = self.__find_angle_difference(angle_1,t13,'t13')
         
         #print('\nAngle_1:\n',angle_1,'\nAngle differences:\n',angle_difference_2,'\n',angle_difference_3)
-        
+        # Finds the average angle using differences
         average_angle = angle_1 + (angle_difference_2+angle_difference_3)/3
         
+        # returns the average angles, including statements for overflow (num > pi) an underflow (num <= pi)
         if average_angle > np.pi:
             return average_angle - 2*np.pi
-        if average_angle < -np.pi:
+        if average_angle <= -np.pi:
             return average_angle + 2*np.pi
         return average_angle
 
