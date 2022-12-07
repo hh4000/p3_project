@@ -2,53 +2,73 @@ import rospy
 from geometry_msgs.msg import Twist
 from std_msgs.msg import Float32
 from sensor_msgs.msg import Imu
-
-
-PI = 3.14159265359
+from numpy import pi
 class Angle_turner:
     def __init__(self):
+        rospy.init_node('driving_controller',anonymous=True)
+        
+        self.vel_publisher = rospy.Publisher('/cmd_vel_mux/input/navi', Twist,queue_size=10)
+        
+        self.pose_subscriber = rospy.Subscriber('/mobile_base/sensors/imu_data', Imu, self.update_imu)
+        self.goal_angle_subscriber = rospy.Subscriber('/sound_identifier/goal_angle', Float32, self.update_goal_angle)
+        
         self.imu = Imu()
-        self.pub = rospy.Publisher('/cmd_vel_mux/input/navi', Twist, queue_size=10)
-        self.must_turn = False
-        self.turn_angle = 0
-        self.start_angle = 0
-        
-        rospy.init_node('Angle_turner', anonymous=True)
-        rate = rospy.Rate(60)
-        rospy.Subscriber('/tdoa_calculator/desired_angle',Float32,self.send_turn_signal)
-        rospy.Subscriber('/mobile_base/sensors/imu_data', Imu, self.update_imu)
-        
+        self.goal_angle = 0
+        self.rate = rospy.Rate(10)
+
+        self.imu.orientation.z
     def update_imu(self, imu):
         self.imu = imu
-        corrected_angle = self.imu.orientation.z-self.start_angle
-        if corrected_angle > 1:
-            corrected_angle = 2 - corrected_angle
-        elif corrected_angle < -1:
-            corrected_angle =-2 - corrected_angle
-        
-        if (corrected_angle-self.turn_angle/PI)<0.01:
-            self.must_turn = False
-            self.turn_angle = 10
-        rospy.loginfo(corrected_angle)
-        if self.must_turn:
-            vel = Twist()
-            if self.turn_angle >= 0:
-                vel.angular.z = 0.5
-            elif self.turn_angle < 0:
-                vel.angular.z =-0.5
-            rospy.loginfo('turning to ' + str(self.turn_angle/PI))
-            self.pub.publish(vel)
-        
+        self.imu.orientation.z = round(self.imu.orientation.z,4)
     
-    def send_turn_signal(self, angle):
-        self.start_angle = self.imu.orientation.z
-        self.turn_angle = angle.data
-        self.must_turn = True
-        rospy.loginfo('\n\nRecieved angle.\n»'+str(self.turn_angle)+"\n")
-    def run(self):
-        rospy.spin()
+    def update_goal_angle(self, data):
+        goal_angle = Float32()
+        goal_angle = data
+        turn_start_angle = self.imu.orientation.z
+        turn_start_angle = round(turn_start_angle,4)
+        # Normalise goal angle
+        goal_angle.data = round(goal_angle.data/pi,4)
+        goal_angle_corrected = goal_angle.data + turn_start_angle
+        
+        while goal_angle_corrected > 1:
+            goal_angle_corrected -= 2
+        while goal_angle_corrected <= -1:
+            goal_angle_corrected += 2
+        self.goal_angle = goal_angle_corrected
+        
+    def angle_distance(self, goal_angle):
+        difference = goal_angle - self.imu.orientation.z
+        if abs(difference) > 1:
+            difference = 2 - difference
+        return difference
+    
+    def angular_vel(self, goal_angle, constant = 2):
+        return constant * self.angle_distance(goal_angle)
+        
+    def go_to_goal_angle(self):
+        angle_tolerance = 0.005
+        
+        vel_msg = Twist()
+        
+        vel_msg.angular.x = 0
+        vel_msg.angular.y = 0
+        vel_msg.angular.z = 0
+
+        vel_msg.linear.x = 0
+        vel_msg.linear.y = 0
+        vel_msg.linear.z = 0
+        while not rospy.is_shutdown():
+            if self.angle_distance(self.goal_angle) > angle_tolerance:
+                vel_msg.angular.z = self.angular_vel(self.goal_angle)
+            else:
+                vel_msg.angular.z = 0
+            self.vel_publisher.publish(vel_msg)
+            self.rate.sleep()
         
 
 if __name__ == '__main__':
-    turner = Angle_turner()
-    turner.run()
+    try:
+        turner = Angle_turner()
+        turner.go_to_goal_angle()
+    except rospy.ROSInterruptException:
+        pass
