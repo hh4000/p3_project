@@ -18,7 +18,6 @@ sampling_rate = 48000
 d = 0.08 #meter distance between microphones
 c = 343 #Speed of sound
 
-
 ### FIX PATHING ###
 ##Choosing a file path for the noise template
 #file_path_sensitive = r'C:\Users\silas\Desktop\3 microphones quiet sensitive (2 sek)' 
@@ -81,9 +80,46 @@ def TDOA(signal1, signal2):
     return tdoa
 
 class Triangular_mic_array:
-    def __init__(self,d):
-        self.d = d
+    def __init__(self):
+        self.d = 0.08 #m
+        self.sampling_rate = 48000 # Hz
+        self.speed_of_sound = 343 #m/s
+        self.record_duration = 2 # s
+        
+    def record(self):
+        """Records using three microphones
+
+        Returns:
+            arr: three arrays containing the recordings of the three microphones
+        """
+        print("Recording")
+        sd.default.device = 21
+        my_recording = sd.rec(int(self.record_duration * self.sampling_rate), samplerate=self.sampling_rate, channels=8)
+        sd.wait()
+        print("done recording")
+        #Storing the recordings from each device into their own variable
+        my_recording1 = my_recording[:,0]
+        my_recording2 = my_recording[:,1]
+        my_recording3 = my_recording[:,2]
+        return my_recording1, my_recording2, my_recording3
     
+    def perform_fft(signal,sr):
+        """performs a fast-fourier transform on a given signal
+
+        Args:
+            signal (arr): array symbolising the sound clip
+            sr (???): ???
+
+        Returns:
+            _type_: _description_
+        """
+        ft = np.fft.fft(signal)
+        n_samples = len(signal)
+        amplitude = 2/n_samples * np.abs(ft)
+        freq = np.fft.fftfreq(n_samples)*sr
+        return n_samples, amplitude, freq, ft
+
+            
     def __find_angle_difference(self,ref_angle_rad, time_difference_seconds, time_id):
         """finds the angle difference compared to the reference angle given a certain time difference
             ### PRIVATE FUNCTION ###
