@@ -191,41 +191,45 @@ class Triangular_mic_array:
         return average_angle
 
 
-i = 0
-reps = 100
-#Replace with "True" when we do it indefinitely 
-no_anomolies = 0
-anomolies = 0
 
-
-while i<reps:
-    rec1, rec2, rec3 = recording_devices()
-    #If all three recordings show anomoly, then we perform the TDOA
-    if anomoly_detection(rec1,sampling_rate) == True and anomoly_detection(rec2,sampling_rate) == True and anomoly_detection(rec3,sampling_rate) == True:
-        print("Anomoly detected")
-        t12 = TDOA(rec1,rec2)
-        t23 = TDOA(rec2,rec3)
-        t13 = TDOA(rec1,rec3)
-        tri = Triangular_mic_array(d)
-        #rad = tri.findSoundAngle(t12,t13,t23)
-        #print("rad: " + str(rad))
-        #angle = rad*(180/np.pi)
-        #print("anomoly")
-        #print("We have found an anomoly at angle: " + str(angle))
-        anomolies = anomolies+1
-    else:
-        print("No anomoly detected")
-        no_anomolies = no_anomolies+1
-    i = i+1
-    print(i)
-    #motionDetectionNMS(0)
-    #sd.wait()
-
-
-print("It found anomolies " + str(anomolies) + " times")
-print("It found no anomolies " + str(no_anomolies)+ " times")
-
-#If we are just gonna run the montion detection by itself, then we can just remove the motion function in here 
-# and move the sd.wait() into the recording function again
+#####################################
+### Below is for testing purposes ###
+#####################################
+#i = 0
+#reps = 100
+##Replace with "True" when we do it indefinitely 
+#no_anomolies = 0
+#anomolies = 0
+#
+#
+#while i<reps:
+#    rec1, rec2, rec3 = recording_devices()
+#    #If all three recordings show anomoly, then we perform the TDOA
+#    if anomoly_detection(rec1,sampling_rate) == True and anomoly_detection(rec2,sampling_rate) == True and anomoly_detection(rec3,sampling_rate) == True:
+#        print("Anomoly detected")
+#        t12 = TDOA(rec1,rec2)
+#        t23 = TDOA(rec2,rec3)
+#        t13 = TDOA(rec1,rec3)
+#        tri = Triangular_mic_array(d)
+#        #rad = tri.findSoundAngle(t12,t13,t23)
+#        #print("rad: " + str(rad))
+#        #angle = rad*(180/np.pi)
+#        #print("anomoly")
+#        #print("We have found an anomoly at angle: " + str(angle))
+#        anomolies = anomolies+1
+#    else:
+#        print("No anomoly detected")
+#        no_anomolies = no_anomolies+1
+#    i = i+1
+#    print(i)
+#    #motionDetectionNMS(0)
+#    #sd.wait()
+#
+#
+#print("It found anomolies " + str(anomolies) + " times")
+#print("It found no anomolies " + str(no_anomolies)+ " times")
+#
+##If we are just gonna run the montion detection by itself, then we can just remove the motion function in here 
+## and move the sd.wait() into the recording function again
 
 
