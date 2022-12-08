@@ -10,6 +10,8 @@ import numpy as np
 #import cv2 as cv
 #import time
 #from time import sleep
+import rospy
+from std_msgs.msg import Float32
 
 
 ### FIX PATHING ###
@@ -27,6 +29,14 @@ class Triangular_mic_array:
         self.sampling_rate = 48000 # Hz
         self.speed_of_sound = 343 #m/s
         self.record_duration = 2 # s
+        
+        rospy.init_node('tdoa_angle_calculator',anonymous=True)
+        self.angle_publisher = rospy.Publisher('/sound_identifier/goal_angle', Float32,queue_size=10)
+        
+        self.goal_angle = Float32()
+        ### NO RATE DEFINED, AS IT MAY WORK WITHOUT ###
+        #self.rate = rospy.Rate(0.3)
+        
         
     def record(self):
         """Records using three microphones
@@ -218,7 +228,33 @@ class Triangular_mic_array:
         return average_angle
     def run(self):
         ## ADD CODE ##
+        while not rospy.is_shutdown:
+            #If all three recordings show anomoly, then we perform the TDOA
+            rec_1, rec_2, rec_3  = self.record()
+            if self.anomoly_detection(rec_1,self.sampling_rate) == True and self.anomoly_detection(rec_2,self.sampling_rate) == True and self.anomoly_detection(rec_3,self.sampling_rate) == True:
+                print("Anomoly detected")
+                t12 = self.TDOA(rec_1,rec_2)
+                t23 = self.TDOA(rec_2,rec_3)
+                t13 = self.TDOA(rec_1,rec_3)
+                self.goal_angle.data = self.findSoundAngle(t12,t13,t23)
+                #print("rad: " + str(rad))
+                #angle = rad*(180/np.pi)
+                #print("anomoly")
+                #print("We have found an anomoly at angle: " + str(angle))
+                self.angle_publisher.publish(self.goal_angle)
+                rospy.loginfo('Anomoly found at angle: %f', self.goal_angle.data)
+            #motionDetectionNMS(0)
+            #sd.wait()
+            
+            # and move the sd.wait() into the recording function again
+            #If we are just gonna run the montion detection by itself, then we can just remove the motion function in here 
 
+if __name__ == '__main__':
+    try:
+        microphone_array = Triangular_mic_array()
+        microphone_array.run()
+    except rospy.ROSInterruptException:
+        pass
 
 
 #####################################
