@@ -100,7 +100,6 @@ class Triangular_mic_array:
         elif time_id=='t13': factor =  1
         else:
             #If not known id output error
-            print()
             raise ValueError('Incorrect input for time_id; Expected \'t12\' or \'t13\', recieved ', time_id)
         # Two possible angles given the time differenc 
         angle_1 = factor*(np.pi/6-np.arccos(c/self.d*time_difference_seconds))
@@ -172,7 +171,8 @@ class Triangular_mic_array:
         
         # Error the case that the TDOA's are deemed impossible
         if index_1 != index_2:
-            raise ValueError('Time differences are impossible')
+            print('Time differences are impossible')
+            return float('NaN')
         # Define angle_1 as the correct angle
         angle_1 = a[index_1]
         # calculates the angles given the other sets of TDOA and gives the difference
