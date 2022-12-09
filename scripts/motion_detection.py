@@ -3,15 +3,24 @@ import cv2 as cv
 import numpy as np
 from time import sleep
 from imutils.object_detection import non_max_suppression
+import rospy
+from std_msgs.msg import Bool
 
-def motionDetectionNMS(camera):
+def motionDetectionNMS():
 # define a video capture object
+
+	rospy.init_node('motion_detecter',anonymous=True)
+	bool_publiser = rospy.Publisher('/motion_detection/motion_detected', Bool, queue_size=10)
+	rate = rospy.Rate(10)
+ 
+ 
+	camera = int(input('Input camera ID: '))
 	vid = cv.VideoCapture(camera)
 
 	previousFrame = None
 
-	while(True):
-		sleep(0.05)
+	while not rospy.is_shutdown():
+		is_motion = Bool()
 		# Capture the video frame
 		# by frame
 		ref, frame = vid.read()
@@ -35,7 +44,7 @@ def motionDetectionNMS(camera):
 		rects = []
 
 		for contour in contours:
-			if cv.contourArea(contour) < 3000:
+			if cv.contourArea(contour) < 3000: #Movement threshold
 				# too small: skip!
 				continue
 			
@@ -51,6 +60,7 @@ def motionDetectionNMS(camera):
 			cv.rectangle(frame, (x, y), (x + w, y + h),
 				(0, 0, 255), 2)
 
+
 		# Display the resulting frame
 		cv.imshow('ThreshedFrame', threshFrame)
 		cv.imshow('Img', frame)
@@ -58,7 +68,20 @@ def motionDetectionNMS(camera):
 		if cv.waitKey(1) & 0xFF == ord('0'):
 			break
 
+		if len(pick) > 0:
+			is_motion.data = True
+			rospy.loginfo('Motion is detected ')
+		else:
+			is_motion.data = False
+		bool_publiser.publish(is_motion)
+		rate.sleep()
+
 	# Destroy all the windows
 	cv.destroyAllWindows()
 
-motionDetectionNMS(1)
+#motionDetectionNMS(1)
+if __name__ == '__main__':
+    try:
+        motionDetectionNMS()
+    except rospy.ROSInterruptException:
+        pass
