@@ -20,7 +20,13 @@ from std_msgs.msg import Float32
 #file_path_insensitive = r'C:\Users\silas\Desktop\3 microphones quiet insensitive (2 sek)'
 #file_path_very_sensitive = r'C:\Users\silas\Desktop\3 microphones quiet very sensitive (2 sek)'
 #noise_template = np.loadtxt(file_path_sensitive)
-
+template_dictionary = {
+    1 : r'/home/hans/sound_templates/3-microphones-loud-insensitive-2-sek.txt',
+    2 : r'/home/hans/sound_templates/3-microphones-loud-sensitive-2-sek.txt',
+    3 : r'/home/hans/sound_templates/3-microphones-quiet-insensitive-2-sek.txt',
+    4 : r'/home/hans/sound_templates/3-microphones-quiet-sensitive-2-sek.txt',
+    5 : r'/home/hans/sound_templates/3-microphones-quiet-very-sensitive-sek.txt' 
+}
 
 
 class Triangular_mic_array:
@@ -36,7 +42,10 @@ class Triangular_mic_array:
         self.goal_angle = Float32()
         ### NO RATE DEFINED, AS IT MAY WORK WITHOUT ###
         #self.rate = rospy.Rate(0.3)
-        
+        print('##TEMPLATES## \n1: loud-insensitive \n2: loud-sensitive \n3: quiet-insensitive \n4: quiet-sensitive \n5: quiet-very-sensitive\n')    
+        template_id = input('Choose a template: ')
+        self.noise_template = np.loadtxt(template_dictionary[template_id])
+        self.sound_device_id = input('\nPlease input sound device id: ')
         
     def record(self):
         """Records using three microphones
@@ -45,7 +54,7 @@ class Triangular_mic_array:
             arr: three arrays containing the recordings of the three microphones
         """
         print("Recording")
-        sd.default.device = 21
+        sd.default.device = self.sound_device_id
         my_recording = sd.rec(int(self.record_duration * self.sampling_rate), samplerate=self.sampling_rate, channels=8)
         sd.wait()
         print("done recording")
@@ -90,7 +99,7 @@ class Triangular_mic_array:
         #We then do a for-loop that tests the newly recorded sound against the noise template
         for x in range(int(n_samples/2)):
             #If the sound has a frequency higher that the noise template it will be considered an anomoly
-            if noise_template[x] < (amplitude[x]*100000):#Error because paths (see line 22-27)
+            if self.noise_template[x] < (amplitude[x]*100000):#Error because paths (see line 22-27)
                 print("anomoly at freq: " + str(freq[x]) + " and amplitude: " + str(amplitude[x]*100000))
                 anomoly = True ### WHY IS THIS HERE? ###
                 return True
