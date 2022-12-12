@@ -21,11 +21,11 @@ from std_msgs.msg import Float32
 #file_path_very_sensitive = r'C:\Users\silas\Desktop\3 microphones quiet very sensitive (2 sek)'
 #noise_template = np.loadtxt(file_path_sensitive)
 template_dictionary = {
-    1 : r'/home/hans/sound_templates/3-microphones-loud-insensitive-2-sek.txt',
-    2 : r'/home/hans/sound_templates/3-microphones-loud-sensitive-2-sek.txt',
-    3 : r'/home/hans/sound_templates/3-microphones-quiet-insensitive-2-sek.txt',
-    4 : r'/home/hans/sound_templates/3-microphones-quiet-sensitive-2-sek.txt',
-    5 : r'/home/hans/sound_templates/3-microphones-quiet-very-sensitive-sek.txt' 
+    '1' : r'/home/hans/catkin_ws/src/p3_project/sound_templates/3-microphones-loud-insensitive-2-sek.txt',
+    '2' : r'/home/hans/catkin_ws/src/p3_project/sound_templates/3-microphones-loud-sensitive-2-sek.txt',
+    '3' : r'/home/hans/catkin_ws/src/p3_project/sound_templates/3-microphones-quiet-insensitive-2-sek.txt',
+    '4' : r'/home/hans/catkin_ws/src/p3_project/sound_templates/3-microphones-quiet-sensitive-2-sek.txt',
+    '5' : r'/home/hans/catkin_ws/src/p3_project/sound_templates/3-microphones-quiet-very-sensitive-sek.txt' 
 }
 
 
