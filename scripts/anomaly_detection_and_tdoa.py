@@ -82,29 +82,29 @@ class Triangular_mic_array:
         freq = np.fft.fftfreq(n_samples)*sr
         return n_samples, amplitude, freq, ft
 
-    def anomoly_detection(self,signal,sr):
-        """Checks if there is an anomoly in the sound clip
+    def anomaly_detection(self,signal,sr):
+        """Checks if there is an anomaly in the sound clip
 
         Args:
             signal (array): recording of the signal
             sr (???): ???
 
         Returns:
-            bool: whether or not there is an anomoly
+            bool: whether or not there is an anomaly
         """
-        #We set the bool "anomoly" as False to begin with and then perform an fft on the signal
-        anomoly = False
+        #We set the bool "anomaly" as False to begin with and then perform an fft on the signal
+        anomaly = False
         n_samples, amplitude, freq, ft = self.perform_fft(signal, sr)
 
         #We then do a for-loop that tests the newly recorded sound against the noise template
         for x in range(int(n_samples/2)):
-            #If the sound has a frequency higher that the noise template it will be considered an anomoly
+            #If the sound has a frequency higher that the noise template it will be considered an anomaly
             if self.noise_template[x] < (amplitude[x]*100000):#Error because paths (see line 22-27)
-                print("anomoly at freq: " + str(freq[x]) + " and amplitude: " + str(amplitude[x]*100000))
-                anomoly = True ### WHY IS THIS HERE? ###
+                print("anomaly at freq: " + str(freq[x]) + " and amplitude: " + str(amplitude[x]*100000))
+                anomaly = True ### WHY IS THIS HERE? ###
                 return True
-        #If not, then there is no anomoly
-        if anomoly == False: ## THERE DOES NOT NEED TO BE AN IF-STATEMENT ##
+        #If not, then there is no anomaly
+        if anomaly == False: ## THERE DOES NOT NEED TO BE AN IF-STATEMENT ##
             return False
     def TDOA(self,signal1, signal2):
         """Find the Time difference of arrival of two signals
@@ -237,21 +237,18 @@ class Triangular_mic_array:
         return average_angle
     def run(self):
         ## ADD CODE ##
-        while not rospy.is_shutdown:
-            #If all three recordings show anomoly, then we perform the TDOA
+        while not rospy.is_shutdown():
+            #If all three recordings show anomaly, then we perform the TDOA
             rec_1, rec_2, rec_3  = self.record()
-            if self.anomoly_detection(rec_1,self.sampling_rate) == True and self.anomoly_detection(rec_2,self.sampling_rate) == True and self.anomoly_detection(rec_3,self.sampling_rate) == True:
-                print("Anomoly detected")
+            if self.anomaly_detection(rec_1,self.sampling_rate) == True and self.anomaly_detection(rec_2,self.sampling_rate) == True and self.anomaly_detection(rec_3,self.sampling_rate) == True:
+                print("anomaly detected")
                 t12 = self.TDOA(rec_1,rec_2)
                 t23 = self.TDOA(rec_2,rec_3)
                 t13 = self.TDOA(rec_1,rec_3)
-                self.goal_angle.data = self.findSoundAngle(t12,t13,t23)
-                #print("rad: " + str(rad))
-                #angle = rad*(180/np.pi)
-                #print("anomoly")
-                #print("We have found an anomoly at angle: " + str(angle))
+                self.goal_angle.data = self.find_sound_angle(t12,t13,t23)
+
                 self.angle_publisher.publish(self.goal_angle)
-                rospy.loginfo('Anomoly found at angle: %f', self.goal_angle.data)
+                rospy.loginfo('anomaly found at angle: %f', self.goal_angle.data)
             #motionDetectionNMS(0)
             #sd.wait()
             
@@ -278,9 +275,9 @@ if __name__ == '__main__':
 #
 #while i<reps:
 #    rec1, rec2, rec3 = recording_devices()
-#    #If all three recordings show anomoly, then we perform the TDOA
-#    if anomoly_detection(rec1,sampling_rate) == True and anomoly_detection(rec2,sampling_rate) == True and anomoly_detection(rec3,sampling_rate) == True:
-#        print("Anomoly detected")
+#    #If all three recordings show anomaly, then we perform the TDOA
+#    if anomaly_detection(rec1,sampling_rate) == True and anomaly_detection(rec2,sampling_rate) == True and anomaly_detection(rec3,sampling_rate) == True:
+#        print("anomaly detected")
 #        t12 = TDOA(rec1,rec2)
 #        t23 = TDOA(rec2,rec3)
 #        t13 = TDOA(rec1,rec3)
@@ -288,11 +285,11 @@ if __name__ == '__main__':
 #        #rad = tri.findSoundAngle(t12,t13,t23)
 #        #print("rad: " + str(rad))
 #        #angle = rad*(180/np.pi)
-#        #print("anomoly")
-#        #print("We have found an anomoly at angle: " + str(angle))
+#        #print("anomaly")
+#        #print("We have found an anomaly at angle: " + str(angle))
 #        anomolies = anomolies+1
 #    else:
-#        print("No anomoly detected")
+#        print("No anomaly detected")
 #        no_anomolies = no_anomolies+1
 #    i = i+1
 #    print(i)
