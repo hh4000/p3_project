@@ -25,7 +25,7 @@ template_dictionary = {
     '2' : r'/home/hans/catkin_ws/src/p3_project/sound_templates/3-microphones-loud-sensitive-2-sek.txt',
     '3' : r'/home/hans/catkin_ws/src/p3_project/sound_templates/3-microphones-quiet-insensitive-2-sek.txt',
     '4' : r'/home/hans/catkin_ws/src/p3_project/sound_templates/3-microphones-quiet-sensitive-2-sek.txt',
-    '5' : r'/home/hans/catkin_ws/src/p3_project/sound_templates/3-microphones-quiet-very-sensitive-sek.txt' 
+    '5' : r'/home/hans/catkin_ws/src/p3_project/sound_templates/3-microphones-quiet-very-sensitive-2-sek.txt' 
 }
 
 
@@ -148,11 +148,11 @@ class Triangular_mic_array:
             #If not known id output error
             raise ValueError('Incorrect input for time_id; Expected \'t12\' or \'t13\', recieved ', time_id)
         # Two possible angles given the time differenc 
-        angle_1 = factor*(np.pi/6-np.arccos(self.c/self.d*time_difference_seconds))
-        angle_2 = factor*(np.arccos(self.c/self.d*time_difference_seconds)-np.pi*11/6)
+        angle_1 = factor*(np.pi/6-np.arccos(self.speed_of_sound/self.d*time_difference_seconds))
+        angle_2 = factor*(np.arccos(self.speed_of_sound/self.d*time_difference_seconds)-np.pi*11/6)
         if abs(angle_2)> np.pi:
             # If angle 2 is out of bounds, use other method
-            angle_2 = factor*(np.arccos(self.c/self.d*time_difference_seconds)+np.pi/6)
+            angle_2 = factor*(np.arccos(self.speed_of_sound/self.d*time_difference_seconds)+np.pi/6)
          
         ## Print statement for testing
         #print('\nTime difference: ',time_id,'\nAngle_1: ', angle_1,'\nAngle_2: ',angle_2)
@@ -192,7 +192,7 @@ class Triangular_mic_array:
             float: angle of the sound in radians
         """
         #Calculate the 2 possible angles of the sound from the TDOA of mic 2 and 3
-        a1 = np.arcsin(self.c*t23/self.d)
+        a1 = np.arcsin(self.speed_of_sound*t23/self.d)
         if a1>=0:
             a2 =  np.pi - a1
         else:
@@ -201,8 +201,8 @@ class Triangular_mic_array:
         a = [a1,a2]
         
         # Uses the TDOA of the other two sets of microphones to dedice the angle (a1,a2) that is most likely
-        t12_expected = [self.d/self.c*np.cos(angle + np.pi/6) for angle in a]
-        t13_expected = [self.d/self.c*np.cos(angle - np.pi/6) for angle in a]
+        t12_expected = [self.d/self.speed_of_sound*np.cos(angle + np.pi/6) for angle in a]
+        t13_expected = [self.d/self.speed_of_sound*np.cos(angle - np.pi/6) for angle in a]
         differences_1 = [abs(t12-time_difference) for time_difference in t12_expected]
         differences_2 = [abs(t13-time_difference) for time_difference in t13_expected]
         # If statements to decide correct angle
