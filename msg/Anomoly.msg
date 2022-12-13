@@ -1,2 +1,0 @@
-bool anomoly_occurred 
-float32 angle_radians
