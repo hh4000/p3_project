@@ -50,7 +50,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate messages in the 'msg' folder
 add_message_files(
   FILES
-  anomaly.msg
+  Anomoly.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -160,7 +160,7 @@ include_directories(
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
 catkin_install_python(PROGRAMS
-  scripts/anomaly_detection_and_tdoa.py
+  scripts/anomoly_detection_and_tdoa.py
   scripts/driver.py
   scripts/motion_detection.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
