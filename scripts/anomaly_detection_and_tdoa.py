@@ -69,7 +69,7 @@ class Triangular_mic_array:
 
         Args:
             signal (arr): array symbolising the sound clip
-            samplerate (int): samples
+            samplerate (int): samples per second
 
         Returns:
             ???: ???
@@ -82,13 +82,8 @@ class Triangular_mic_array:
         freq = np.fft.fftfreq(n_samples)*samplerate
         return n_samples, amplitude, freq, fourier_transform
 
-<<<<<<< HEAD:scripts/anomoly_detection_and_tdoa.py
-    def anomoly_detection(self,signal,samplerate):
-        """Checks if there is an anomoly in the sound clip
-=======
-    def anomaly_detection(self,signal,sr):
+    def anomaly_detection(self,signal,samplerate):
         """Checks if there is an anomaly in the sound clip
->>>>>>> master:scripts/anomaly_detection_and_tdoa.py
 
         Args:
             signal (array): recording of the signal
@@ -97,23 +92,9 @@ class Triangular_mic_array:
         Returns:
             bool: whether or not there is an anomaly
         """
-<<<<<<< HEAD:scripts/anomoly_detection_and_tdoa.py
-        #We set the bool "anomoly" as False to begin with and then perform an fft on the signal
-        anomoly = False
-        n_samples, amplitude, freq, ft = self.perform_fft(signal, samplerate)
-
-        #We then do a for-loop that tests the newly recorded sound against the noise template
-        for x in range(int(n_samples/2)):
-            #If the sound has a frequency higher that the noise template it will be considered an anomoly
-            if noise_template[x] < (amplitude[x]*100000):#Error because paths (see line 22-27)
-                print("anomoly at freq: " + str(freq[x]) + " and amplitude: " + str(amplitude[x]*100000))
-                return True
-        #If not, then there is no anomoly
-        return False
-=======
         #We set the bool "anomaly" as False to begin with and then perform an fft on the signal
         anomaly = False
-        n_samples, amplitude, freq, ft = self.perform_fft(signal, sr)
+        n_samples, amplitude, freq, fourier_transform = self.perform_fft(signal, samplerate)
 
         #We then do a for-loop that tests the newly recorded sound against the noise template
         for x in range(int(n_samples/2)):
@@ -125,7 +106,6 @@ class Triangular_mic_array:
         #If not, then there is no anomaly
         if anomaly == False: ## THERE DOES NOT NEED TO BE AN IF-STATEMENT ##
             return False
->>>>>>> master:scripts/anomaly_detection_and_tdoa.py
     def TDOA(self,signal1, signal2):
         """Find the Time difference of arrival of two signals
 
@@ -256,14 +236,9 @@ class Triangular_mic_array:
             return average_angle + 2*np.pi
         return average_angle
     def run(self):
-<<<<<<< HEAD:scripts/anomoly_detection_and_tdoa.py
-        while not rospy.is_shutdown():
-            #If all three recordings show anomoly, then we perform the TDOA
-=======
         ## ADD CODE ##
         while not rospy.is_shutdown():
             #If all three recordings show anomaly, then we perform the TDOA
->>>>>>> master:scripts/anomaly_detection_and_tdoa.py
             rec_1, rec_2, rec_3  = self.record()
             if self.anomaly_detection(rec_1,self.sampling_rate) == True and self.anomaly_detection(rec_2,self.sampling_rate) == True and self.anomaly_detection(rec_3,self.sampling_rate) == True:
                 print("anomaly detected")
