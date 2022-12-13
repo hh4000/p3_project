@@ -12,6 +12,7 @@ import numpy as np
 #from time import sleep
 import rospy
 from std_msgs.msg import Float32
+from std_msgs.msg import Bool
 
 
 ### FIX PATHING ###
@@ -38,15 +39,20 @@ class Triangular_mic_array:
         
         rospy.init_node('tdoa_angle_calculator',anonymous=True)
         self.angle_publisher = rospy.Publisher('/sound_identifier/goal_angle', Float32,queue_size=10)
+        rospy.Subscriber('/driving_controller/mooving',Bool,self.update_is_driving)
+        self.rate = rospy.Rate(10)
         
         self.goal_angle = Float32()
         ### NO RATE DEFINED, AS IT MAY WORK WITHOUT ###
         #self.rate = rospy.Rate(0.3)
         print('##TEMPLATES## \n1: loud-insensitive \n2: loud-sensitive \n3: quiet-insensitive \n4: quiet-sensitive \n5: quiet-very-sensitive\n')    
         template_id = input('Choose a template: ')
+        
+        self.is_driving = Bool()
         self.noise_template = np.loadtxt(template_dictionary[template_id])
         self.sound_device_id = input('\nPlease input sound device id: ')
-        
+    def update_is_driving(self,data):
+        self.is_driving = data
     def record(self):
         """Records using three microphones
 
@@ -239,16 +245,18 @@ class Triangular_mic_array:
         ## ADD CODE ##
         while not rospy.is_shutdown():
             #If all three recordings show anomaly, then we perform the TDOA
-            rec_1, rec_2, rec_3  = self.record()
-            if self.anomaly_detection(rec_1,self.sampling_rate) == True and self.anomaly_detection(rec_2,self.sampling_rate) == True and self.anomaly_detection(rec_3,self.sampling_rate) == True:
-                print("anomaly detected")
-                t12 = self.TDOA(rec_1,rec_2)
-                t23 = self.TDOA(rec_2,rec_3)
-                t13 = self.TDOA(rec_1,rec_3)
-                self.goal_angle.data = self.find_sound_angle(t12,t13,t23)
+            if not self.is_driving.data: 
+                rec_1, rec_2, rec_3  = self.record()
+                if self.anomaly_detection(rec_1,self.sampling_rate) == True and self.anomaly_detection(rec_2,self.sampling_rate) == True and self.anomaly_detection(rec_3,self.sampling_rate) == True:
+                    print("anomaly detected")
+                    t12 = self.TDOA(rec_2,rec_1)
+                    t23 = self.TDOA(rec_3,rec_2)
+                    t13 = self.TDOA(rec_3,rec_1)
+                    self.goal_angle.data = self.find_sound_angle(t12,t13,t23)
 
-                self.angle_publisher.publish(self.goal_angle)
-                rospy.loginfo('anomaly found at angle: %f', self.goal_angle.data)
+                    self.angle_publisher.publish(self.goal_angle)
+                    rospy.loginfo('anomaly found at angle: %f', self.goal_angle.data)
+            self.rate.sleep()
             #motionDetectionNMS(0)
             #sd.wait()
             

@@ -1,6 +1,7 @@
 import rospy
 from geometry_msgs.msg import Twist
 from std_msgs.msg import Float32
+from std_msgs.msg import Bool
 from sensor_msgs.msg import Imu
 from numpy import pi
 class Angle_turner:
@@ -8,6 +9,7 @@ class Angle_turner:
         rospy.init_node('driving_controller',anonymous=True)
         
         self.vel_publisher = rospy.Publisher('/cmd_vel_mux/input/navi', Twist,queue_size=10)
+        self.driving_bool_publisher = rospy.Publisher('/driving_controller/mooving', Bool,queue_size=10)
         
         self.pose_subscriber = rospy.Subscriber('/mobile_base/sensors/imu_data', Imu, self.update_imu)
         self.goal_angle_subscriber = rospy.Subscriber('/sound_identifier/goal_angle', Float32, self.update_goal_angle)
@@ -15,7 +17,8 @@ class Angle_turner:
         self.imu = Imu()
         self.goal_angle = 0
         self.rate = rospy.Rate(10)
-
+        
+        self.is_driving = Bool()
         self.imu.orientation.z
     def update_imu(self, imu):
         self.imu = imu
@@ -73,8 +76,12 @@ class Angle_turner:
         while not rospy.is_shutdown():
             if abs(self.angle_distance(self.goal_angle)) > angle_tolerance:
                 vel_msg.angular.z = self.angular_vel(self.goal_angle)
+                self.is_driving.data = True
+                self.driving_bool_publisher.publish(self.is_driving)
             else:
                 vel_msg.angular.z = 0
+                self.is_driving.data = False
+                self.driving_bool_publisher.publish(self.is_driving)
             self.vel_publisher.publish(vel_msg)
             self.rate.sleep()
         
