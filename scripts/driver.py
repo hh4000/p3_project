@@ -9,10 +9,10 @@ class Angle_turner:
         rospy.init_node('driving_controller',anonymous=True)
         
         self.vel_publisher = rospy.Publisher('/cmd_vel_mux/input/navi', Twist,queue_size=10)
-        self.driving_bool_publisher = rospy.Publisher('/driving_controller/mooving', Bool,queue_size=10)
+        self.driving_bool_publisher = rospy.Publisher('/localization_topics/moving', Bool,queue_size=10)
         
         self.pose_subscriber = rospy.Subscriber('/mobile_base/sensors/imu_data', Imu, self.update_imu)
-        self.goal_angle_subscriber = rospy.Subscriber('/sound_identifier/goal_angle', Float32, self.update_goal_angle)
+        self.goal_angle_subscriber = rospy.Subscriber('/localization_topics/goal_angle', Float32, self.update_goal_angle)
         
         self.imu = Imu()
         self.goal_angle = 0

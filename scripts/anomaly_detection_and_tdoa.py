@@ -38,13 +38,13 @@ class Triangular_mic_array:
         self.record_duration = 2 # s
         
         rospy.init_node('tdoa_angle_calculator',anonymous=True)
-        self.angle_publisher = rospy.Publisher('/sound_identifier/goal_angle', Float32,queue_size=10)
-        rospy.Subscriber('/driving_controller/mooving',Bool,self.update_is_driving)
+        self.angle_publisher = rospy.Publisher('/localization_topics/goal_angle', Float32,queue_size=10)
+        rospy.Subscriber('/localization_topics/moving',Bool,self.update_is_driving)
         self.rate = rospy.Rate(10)
         
         self.goal_angle = Float32()
-        ### NO RATE DEFINED, AS IT MAY WORK WITHOUT ###
-        #self.rate = rospy.Rate(0.3)
+
+
         print('##TEMPLATES## \n1: loud-insensitive \n2: loud-sensitive \n3: quiet-insensitive \n4: quiet-sensitive \n5: quiet-very-sensitive\n')    
         template_id = input('Choose a template: ')
         
